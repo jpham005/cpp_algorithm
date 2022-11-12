@@ -2,6 +2,7 @@
 #include <queue>
 #include <cstring>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -91,7 +92,13 @@ int main() {
 
         for (size_t k = 0; k < target.size(); k++) {
           if (vi == target[k].first && vj == target[k].second) {
-
+            curr_i = vi;
+            curr_j = vj;
+            if (map[vi][vj] <= 2) {
+              fish[0].erase(find(fish[0].begin(), fish[0].end(), pair<int, int>(vi, vj)));
+            } else {
+              fish[map[vi][vj] - 2]
+            }
             break;
           }
         }
