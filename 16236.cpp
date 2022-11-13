@@ -6,127 +6,153 @@
 
 using namespace std;
 
-int n;
-int map[20][20];
-int curr_size = 0;
-int curr_i, curr_j;
-vector<pair<int, int> >fish[5];
-vector<pair<int, int> > available_fish;
+class Map {
+public:
+  typedef pair<int, int> CoordType;
 
-vector<pair<int, int> >&& find_fish() {
-  vector<pair<int, int> >curr;
+private:
+  int _mapData[20][20];
+  int _mapSize;
+  vector<CoordType> _target;
+  int _sharkSize;
+  int _eaten;
+  CoordType _sharkPos;
+  bool _visit[20][20];
+  int _time;
 
-  for (int i = curr_size; i >= 0; i--) {
-    curr.insert(fish[i].begin(), fish[i].end());
+  void setTarget() {
+    _target.clear();
+
+    for (int i = 0; i < _mapSize; i++) {
+      for (int j = 0; j < _mapSize; j++) {
+        if (_mapData[i][j] != 0 && _mapData[i][j] < _sharkSize) {
+          _target.push_back(CoordType(i, j));
+        }
+      }
+    }
   }
 
-  return curr;
-}
+public:
+  Map(): _sharkSize(2), _eaten(0), _time(0) {
+    cin >> _mapSize;
+    memset(_mapData, 0, sizeof(_mapData));
+
+    for (int i = 0; i < _mapSize; i++) {
+      for (int j = 0; j < _mapSize; j++) {
+        cin >> _mapData[i][j];
+        if (_mapData[i][j] == 9) {
+          _sharkPos.first = i;
+          _sharkPos.second = j;
+          _mapData[i][j] = 0;
+        }
+      }
+    }
+
+    _target.reserve(_mapSize * _mapSize);
+  }
+
+  ~Map() {}
+
+  const vector<CoordType>& getTarget() { setTarget(); return _target; }
+
+  void eatTarget() {
+    setTarget();
+
+    queue<CoordType> que;
+
+    memset(_visit, 0 ,sizeof(_visit));
+    que.push(_sharkPos);
+    _visit[_sharkPos.first][_sharkPos.second] = true;
+    int elapsed = 0;
+
+    bool isEnd = false;
+    vector<pair<CoordType, int> > result;
+    while (!que.empty()) {
+      size_t size = que.size();
+      for (size_t i = 0; i < size; i++) {
+        CoordType curr = que.front();
+
+        if (find(_target.begin(), _target.end(), curr) != _target.end()) {
+          result.push_back(pair<CoordType, int>(curr, elapsed));
+          isEnd = true;
+
+//          cout << "y: " << curr.first << " x: " << curr.second << " el: " << elapsed << " sz: " << _sharkSize << '\n';
+        }
+
+//        enqueue();
+        if (curr.first - 1 >= 0 && !_visit[curr.first - 1][curr.second] && _mapData[curr.first - 1][curr.second] <= _sharkSize) {
+          _visit[curr.first - 1][curr.second] = true;
+          que.push(CoordType(curr.first - 1, curr.second));
+        }
+
+        if (curr.second - 1 >= 0 && !_visit[curr.first][curr.second - 1] && _mapData[curr.first][curr.second - 1] <= _sharkSize) {
+          _visit[curr.first][curr.second - 1] = true;
+          que.push(CoordType(curr.first, curr.second - 1));
+        }
+
+        if (curr.second + 1 < _mapSize && !_visit[curr.first][curr.second + 1] && _mapData[curr.first][curr.second + 1] <= _sharkSize) {
+          _visit[curr.first][curr.second + 1] = true;
+          que.push(CoordType(curr.first, curr.second + 1));
+        }
+
+        if (curr.first + 1 < _mapSize && !_visit[curr.first + 1][curr.second] && _mapData[curr.first + 1][curr.second] <= _sharkSize) {
+          _visit[curr.first + 1][curr.second] = true;
+          que.push(CoordType(curr.first + 1, curr.second));
+        }
+
+        que.pop();
+
+      }
+      if (isEnd) {
+        break;
+      }
+
+      elapsed++;
+    }
+
+    vector<pair<CoordType, int> >::iterator dest = result.end();
+    CoordType final;
+    final.first = 2147;
+    final.second = 23123;
+    for (vector<pair<CoordType, int> >::iterator it = result.begin(); it != result.end(); it++) {
+      if (it->first.first < final.first) {
+        dest = it;
+        final = it->first;
+      } else if (it->first.first == final.first && it->first.second < final.second) {
+        dest = it;
+        final = it->first;
+      }
+    }
+
+    if (dest == result.end()) {
+      cout << "0\n";
+      exit(0);
+    };
+
+    _time += dest->second;
+    _mapData[dest->first.first][dest->first.second] = 0;
+    _sharkPos = dest->first;
+    _eaten++;
+
+    if (_eaten == _sharkSize) {
+      _sharkSize++;
+      _eaten = 0;
+    }
+  }
+
+  const int& getTime() const { return _time; }
+};
 
 int main() {
   ios::sync_with_stdio(false);
   cin.tie(NULL);
   cout.tie(NULL);
 
-  cin >> n;
+  Map map;
 
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
-      cin >> map[i][j];
-      if (map[i][j] == 0)
-        continue;
-
-      if (map[i][j] <= 2) {
-        fish[0].push_back(pair<int, int>(i, j));
-        continue;
-      }
-
-      if (map[i][j] == 3) {
-        fish[1].push_back(pair<int, int>(i, j));
-        continue;
-      }
-
-      if (map[i][j] == 4) {
-        fish[2].push_back(pair<int, int>(i, j));
-        continue;
-      }
-
-      if (map[i][j] == 5) {
-        fish[3].push_back(pair<int, int>(i, j));
-        continue;
-      }
-
-      if (map[i][j] == 6) {
-        fish[4].push_back(pair<int, int>(i, j));
-        continue;
-      }
-
-      if (map[i][j] == 9) {
-        curr_i = i;
-        curr_j = j;
-        continue;
-      }
-    }
+  while (!map.getTarget().empty()) {
+    map.eatTarget();
   }
 
-  int time = 0;
-
-  while (true) {
-    vector<pair<int, int> > target = find_fish();
-
-    if (target.empty()) {
-      cout << time << '\n';
-      return 0;
-    }
-
-    queue<pair<int, int> > que;
-    que.push(pair<int, int>(curr_i, curr_j));
-    visit[curr_i][curr_j] = true;
-    bool visit[20][20];
-    memset(visit, 0, sizeof(visit));
-    while (!que.empty()) {
-      size_t size = que.size();
-      for (size_t i = 0; i < size; i++) {
-        int vi = que.front().first;
-        int vj = que.front().second;
-
-        for (size_t k = 0; k < target.size(); k++) {
-          if (vi == target[k].first && vj == target[k].second) {
-            curr_i = vi;
-            curr_j = vj;
-            if (map[vi][vj] <= 2) {
-              fish[0].erase(find(fish[0].begin(), fish[0].end(), pair<int, int>(vi, vj)));
-            } else {
-              fish[map[vi][vj] - 2]
-            }
-            break;
-          }
-        }
-
-        if (vi + 1 < n && !visit[vi + 1][vj]) {
-          visit[vi + 1][vj] = true;
-          que.push(pair<int, int>(vi + 1, vj));
-        }
-
-        if (vi - 1 >= 0 && !visit[vi - 1][vj]) {
-          visit[vi - 1][vj] = true;
-          que.push(pair<int, int>(vi - 1, vj));
-        }
-
-        if (vj + 1 < n && !visit[vi][vj + 1]) {
-          visit[vi][vj + 1] = true;
-          que.push(pair<int, int>(vi, vj + 1));
-        }
-
-        if (vj - 1 >= 0 && !visit[vi][vj - 1]) {
-          visit[vi][vj - 1] = true;
-          que.push(pair<int, int>(vi, vj - 1));
-        }
-
-        que.pop();
-      }
-
-      time++;
-    }
-  }
+  cout << map.getTime() << '\n';
 }

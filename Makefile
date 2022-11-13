@@ -1,6 +1,6 @@
 .PHONY: all
 all:
-	c++ -g -fsanitize=address -fsanitize=undefined -Wall -Wextra -Werror $(SRCS)
+	c++ -std=c++11 -g -fsanitize=address -fsanitize=undefined -pedantic -Wall -Wextra -Werror $(SRCS)
 
 .PHONY: clean
 clean:
