@@ -125,7 +125,7 @@ public:
     }
 
     if (dest == result.end()) {
-      cout << "0\n";
+      cout << _time << "\n"; //
       exit(0);
     };
 
