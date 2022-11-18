@@ -22,7 +22,7 @@ int n, m;
 queue<CoordType> que;
 
 bool isOpposite(const e_dir& a, const e_dir& b) {
-  return a + b == 3 || a + b == 7;
+  return a + b == 3 || a + b == 12;
 }
 
 bool isOutbound(const CoordType& curr, const int& dx, const int& dy) {
@@ -36,12 +36,13 @@ bool isOutbound(const CoordType& curr, const int& dx, const int& dy) {
 
 void tryPush(const CoordType& curr, const int& dx, const int& dy, const e_dir& dir) {
   for (int i = 1; i <= 3; i++) {
-    if (!isOutbound(curr, dx * i, dy * i) && map[curr.y + dy * i][curr.x + dx * i] == 1)
+    if (isOutbound(curr, dx * i, dy * i) || map[curr.y + dy * i][curr.x + dx * i] == 1)
       return;
 
-    if (isOutbound(curr, dx * i, dy * i) || (visit[curr.y + dy * i][curr.x + dx * i] & dir))
+    if (visit[curr.y + dy * i][curr.x + dx * i] & dir)
       continue;
 
+    visit[curr.y + dy * i][curr.x + dx * i] |= dir;
     CoordType pushing = curr;
     pushing.x += dx * i;
     pushing.y += dy * i;
@@ -52,25 +53,25 @@ void tryPush(const CoordType& curr, const int& dx, const int& dy, const e_dir& d
 void enqueue(const CoordType& front) {
   CoordType pushing = front;
 
-  if (!(front.dir & (EAST | WEST)) && !(visit[front.y][front.x] & EAST)) {
+  if (!(front.dir & WEST) && !(visit[front.y][front.x] & EAST)) {
     visit[front.y][front.x] |= EAST;
     pushing.dir = EAST;
     que.push(pushing);
   }
 
-  if (!(front.dir & (EAST | WEST)) && !(visit[front.y][front.x] & WEST)) {
+  if (!(front.dir & EAST) && !(visit[front.y][front.x] & WEST)) {
     visit[front.y][front.x] |= WEST;
     pushing.dir = WEST;
     que.push(pushing);
   }
 
-  if (!(front.dir & (SOUTH | NORTH)) && !(visit[front.y][front.x] & SOUTH)) {
+  if (!(front.dir & NORTH) && !(visit[front.y][front.x] & SOUTH)) {
     visit[front.y][front.x] |= SOUTH;
     pushing.dir = SOUTH;
     que.push(pushing);
   }
 
-  if (!(front.dir & (SOUTH | NORTH)) && !(visit[front.y][front.x] & NORTH)) {
+  if (!(front.dir & SOUTH) && !(visit[front.y][front.x] & NORTH)) {
     visit[front.y][front.x] |= NORTH;
     pushing.dir = NORTH;
     que.push(pushing);
@@ -99,8 +100,8 @@ int main() {
 
   cin >> m >> n;
 
-  for (int i = 0; i < m; i++) {
-    for (int j = 0; j < n; j++) {
+  for (int i = 1; i <= m; i++) {
+    for (int j = 1; j <= n; j++) {
       cin >> map[i][j];
     }
   }
@@ -132,17 +133,19 @@ int main() {
   que.push(start);
   visit[start.y][start.x] = start.dir;
   int cnt = 0;
-  while (!que.empty() && !(que.front().x == target.x && que.front().y == target.y && que.front().dir == target.dir)) {
+  while (true) {
     size_t size = que.size();
     for (size_t i = 0; i < size; i++) {
-      cout << que.front().y << ' ' << que.front().x << ' ' << que.front().dir << '\n';
+      if ((que.front().x == target.x && que.front().y == target.y && que.front().dir == target.dir)) {
+        cout << cnt << '\n';
+
+        return 0;
+      }
+
       enqueue(que.front());
       que.pop();
     }
 
     cnt++;
   }
-
-//  cout << que.front().y << ' ' << que.front().x << ' ' << que.front().dir << '\n';
-  cout << cnt << '\n';
 }
